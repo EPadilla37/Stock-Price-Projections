@@ -20,7 +20,8 @@ engine = create_engine(database_url)
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 # Set the path for saving the model
-MODEL_PATH = os.getenv('PATH')
+MODEL_PATH = os.getenv('MODEL_PATH', 'general_stock_model')
+MODEL_PATH = os.path.splitext(MODEL_PATH)[0] + '.h5'
 
 def fetch_stock_data(stock_id):
     query = """
