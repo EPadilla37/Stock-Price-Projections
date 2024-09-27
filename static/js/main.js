@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addStock = document.getElementById('addStock');
     const stockInfo = document.getElementById('stockInfo');
     const chartContainer = document.getElementById('chartContainer');
+    const loadingSpinner = document.getElementById('loadingSpinner'); // Reference to the loading spinner
 
     let chart;
 
@@ -81,6 +82,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fetch stock data and update chart
     function fetchStockData(symbol) {
+        // Show the loading spinner
+        loadingSpinner.style.display = 'block';
+        stockInfo.innerHTML = '<p class="text-info">Forecasting: This can take up to several minutes. Do not refresh the page.</p>';
+        
         fetch('/select_stock', {
             method: 'POST',
             headers: {
@@ -90,6 +95,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
+            // Hide the loading spinner
+            loadingSpinner.style.display = 'none';
+
             if (data.error) {
                 stockInfo.innerHTML += `<p class="text-danger">${data.error}</p>`;
             } else {
@@ -105,6 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            // Hide the loading spinner in case of error
+            loadingSpinner.style.display = 'none';
             console.error('Error fetching stock data:', error);
             stockInfo.innerHTML = '<p class="text-danger">Error fetching stock data. Please try again.</p>';
         });

@@ -11,7 +11,8 @@ from models import db, Stock, Forecast, HistoricalData
 import os
 
 # Database connection
-engine = create_engine('postgresql://postgres:padilla@localhost/stockdb')
+database_url = os.getenv('DATABASE_URL')
+engine = create_engine(database_url)
 
 # Global scaler
 scaler = MinMaxScaler(feature_range=(0, 1))

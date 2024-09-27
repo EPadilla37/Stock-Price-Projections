@@ -11,3 +11,8 @@ body {
     width: 100%;
     height: 400px;
 }
+
+#loadingSpinner {
+    margin-top: 20px;
+    text-align: center;
+}

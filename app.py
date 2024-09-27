@@ -11,9 +11,11 @@ from stock_data import search_stock_info, fetch_and_store_stock_data, fetch_and_
 from lstm_predictor import generate_forecast, store_forecast, daily_model_update
 from utils import get_latest_market_close
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:padilla@localhost/stockdb'
+database_url = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 db.init_app(app)
 CORS(app)
 

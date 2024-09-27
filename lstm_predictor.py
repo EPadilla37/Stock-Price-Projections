@@ -8,15 +8,19 @@ from datetime import datetime, timedelta
 import os
 from models import db, Stock, Forecast, HistoricalData
 from utils import get_latest_market_close
+from dotenv import load_dotenv
 
+load_dotenv()
+
+database_url = os.getenv('DATABASE_URL')
 # Database connection
-engine = create_engine('postgresql://postgres:padilla@localhost/stockdb')
+engine = create_engine(database_url)
 
 # Global scaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 # Set the path for saving the model
-MODEL_PATH = r"C:\Users\Ernesto\Documents\Ernesto\Projections\general_stock_model.h5"
+MODEL_PATH = os.getenv('PATH')
 
 def fetch_stock_data(stock_id):
     query = """
