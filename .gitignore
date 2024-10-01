@@ -1,3 +1,4 @@
 venv/
 frontend/
-.env/
+__pycache__/
+*.py[cod]
