@@ -13,13 +13,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 database_url = os.getenv('DATABASE_URL')
-# Database connection
 engine = create_engine(database_url)
 
-# Global scaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
-# Set the path for saving the model
 MODEL_PATH = os.getenv('MODEL_PATH', 'general_stock_model')
 MODEL_PATH = os.path.splitext(MODEL_PATH)[0] + '.h5'
 
@@ -141,8 +138,8 @@ def store_forecast(stock_id, forecast):
             stock_id=stock_id,
             date=forecast_date,
             predicted_price=forecast_item['forecast'],
-            actual_price=None,  # Set to None initially
-            residual=None,  # Set to None initially
+            actual_price=None,  
+            residual=None,  
             created_at=datetime.now()
         )
         db.session.add(new_forecast)
@@ -165,16 +162,10 @@ def update_actual_prices(stock_id):
 
 def daily_model_update():
     update_model_with_feedback()
-    # After updating the model, update actual prices and regenerate forecasts for all stocks
+    
     for stock in Stock.query.all():
         update_actual_prices(stock.id)
         generate_and_store_forecast(stock.id)
-
-# def daily_model_update():
-#     update_model_with_feedback()
-#     # After updating the model, regenerate forecasts for all stocks for the next day
-#     for stock in Stock.query.all():
-#         generate_and_store_forecast(stock.id)
 
 if __name__ == "__main__":
     daily_model_update()

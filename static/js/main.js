@@ -1,5 +1,3 @@
-// static/js/main.js
-
 document.addEventListener('DOMContentLoaded', function() {
     const stockSelect = document.getElementById('stockSelect');
     const stockSymbol = document.getElementById('stockSymbol');
@@ -7,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addStock = document.getElementById('addStock');
     const stockInfo = document.getElementById('stockInfo');
     const chartContainer = document.getElementById('chartContainer');
-    const loadingSpinner = document.getElementById('loadingSpinner'); // Reference to the loading spinner
+    const loadingSpinner = document.getElementById('loadingSpinner'); 
 
     let chart;
 

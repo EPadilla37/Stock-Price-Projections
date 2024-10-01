@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -23,11 +21,9 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-# Configure logging
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
-# Create tables if they don't exist
 try:
     with app.app_context():
         db.create_all()
@@ -138,7 +134,6 @@ def update_stocks():
             # Fetch and store latest data, then generate new forecast
             fetch_and_store_latest_data(stock.symbol, db.session)
         
-        # Run the daily model update
         daily_model_update()
         
         return jsonify({'message': 'Stocks updated successfully'})
@@ -159,4 +154,8 @@ def start_scheduler():
         return jsonify({'message': 'Scheduler is already running'})
 
 if __name__ == '__main__':
+    with app.app_context():
+        if not scheduler.get_job('update_stocks'):
+            scheduler.add_job(id='update_stocks', func=scheduled_update, trigger='cron', hour=18, minute=19, timezone='US/Eastern')
+            print("Scheduler started")
     app.run(debug=True)

@@ -1,5 +1,3 @@
-# stock_data.py
-
 import yfinance as yf
 from models import Stock, HistoricalData
 import pandas as pd
@@ -29,7 +27,6 @@ def fetch_and_store_latest_data(symbol, db_session):
 
         latest_close_date = get_latest_market_close()
         
-        # Fetch latest data (up to the latest market close)
         historical_data = yf.Ticker(symbol).history(start=latest_close_date, end=latest_close_date + timedelta(days=1))
 
         if not historical_data.empty:
@@ -62,7 +59,7 @@ def fetch_and_store_stock_data(symbol, db_session):
         if not stock:
             stock = Stock(symbol=symbol, name=stock_info.get('longName', 'N/A'))
             db_session.add(stock)
-            db_session.flush()  # This will assign an ID to the stock without committing the transaction
+            db_session.flush() 
 
         # Fetch historical data
         historical_data = yf.Ticker(symbol).history(period="max")
@@ -89,7 +86,7 @@ def fetch_and_store_stock_data(symbol, db_session):
         else:
             logging.error(f"Failed to generate forecast for {symbol}: {response.text}")
         
-        return stock  # Return the stock object
+        return stock  
     except IntegrityError as e:
         db_session.rollback()
         logging.error(f"Integrity Error for {symbol}: {e}")

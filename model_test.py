@@ -1,5 +1,3 @@
-# lstm_predictor.py
-
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -10,11 +8,9 @@ from datetime import datetime, timedelta
 from models import db, Stock, Forecast, HistoricalData
 import os
 
-# Database connection
 database_url = os.getenv('DATABASE_URL')
 engine = create_engine(database_url)
 
-# Global scaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 def fetch_all_stock_data():
@@ -73,7 +69,7 @@ def predict_next_month(model, last_60_days):
     predictions = []
     current_batch = last_60_days[-60:].reshape((1, 60, 1))
     
-    for _ in range(30):  # Predict next 30 days
+    for _ in range(30):  
         current_pred = model.predict(current_batch)[0]
         predictions.append(current_pred)
         current_batch = np.append(current_batch[:, 1:, :], [[current_pred]], axis=1)
@@ -110,7 +106,7 @@ def fetch_recent_forecasts():
 def update_model_with_feedback():
     recent_forecasts = fetch_recent_forecasts()
     if recent_forecasts.empty:
-        return  # No recent forecasts to learn from
+        return  
     
     X, y = prepare_data(recent_forecasts[['actual_price']])
     model = load_model('general_stock_model.h5')
@@ -139,6 +135,6 @@ def store_forecast(stock_id, forecast):
 # Run this function periodically (e.g., daily) to update the model
 def daily_model_update():
     update_model_with_feedback()
-    # After updating the model, you might want to regenerate forecasts for all stocks
+    
     for stock in Stock.query.all():
         generate_and_store_forecast(stock.id)
