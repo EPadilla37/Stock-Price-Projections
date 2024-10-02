@@ -8,6 +8,7 @@ def get_latest_market_close():
     market_close = now.replace(hour=16, minute=10, second=0, microsecond=0)
     
     if now < market_close:
-        return today - timedelta(days=1)
+        # return today - timedelta(days=1)
+        return today 
     else:
         return today

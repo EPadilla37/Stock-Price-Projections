@@ -155,6 +155,7 @@ def start_scheduler():
 
 if __name__ == '__main__':
     with app.app_context():
+        # scheduled_update() //use only to manually check stock after 3:10PM PST
         if not scheduler.get_job('update_stocks'):
             scheduler.add_job(id='update_stocks', func=scheduled_update, trigger='cron', hour=18, minute=19, timezone='US/Eastern')
             print("Scheduler started")

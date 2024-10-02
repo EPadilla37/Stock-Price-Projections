@@ -64,17 +64,29 @@ def fetch_and_store_stock_data(symbol, db_session):
         # Fetch historical data
         historical_data = yf.Ticker(symbol).history(period="max")
         for date, row in historical_data.iterrows():
-            data_entry = HistoricalData(
-                stock_id=stock.id,
-                date=date.date(),
-                open=float(row['Open']) if not pd.isna(row['Open']) else None,
-                high=float(row['High']) if not pd.isna(row['High']) else None,
-                low=float(row['Low']) if not pd.isna(row['Low']) else None,
-                close=float(row['Close']) if not pd.isna(row['Close']) else None,
-                volume=float(row['Volume']) if not pd.isna(row['Volume']) else None,
-                adj_close=float(row['Close']) if not pd.isna(row['Close']) else None
-            )
-            db_session.add(data_entry)
+            existing_entry = db_session.query(HistoricalData).filter_by(stock_id=stock.id, date=date.date()).first()
+            
+            if existing_entry:
+                # Update the existing record if needed, or skip this iteration
+                existing_entry.open = float(row['Open']) if not pd.isna(row['Open']) else None
+                existing_entry.high = float(row['High']) if not pd.isna(row['High']) else None
+                existing_entry.low = float(row['Low']) if not pd.isna(row['Low']) else None
+                existing_entry.close = float(row['Close']) if not pd.isna(row['Close']) else None
+                existing_entry.volume = float(row['Volume']) if not pd.isna(row['Volume']) else None
+                existing_entry.adj_close = float(row['Close']) if not pd.isna(row['Close']) else None
+            else:
+                # Insert new data if no record exists for the date
+                data_entry = HistoricalData(
+                    stock_id=stock.id,
+                    date=date.date(),
+                    open=float(row['Open']) if not pd.isna(row['Open']) else None,
+                    high=float(row['High']) if not pd.isna(row['High']) else None,
+                    low=float(row['Low']) if not pd.isna(row['Low']) else None,
+                    close=float(row['Close']) if not pd.isna(row['Close']) else None,
+                    volume=float(row['Volume']) if not pd.isna(row['Volume']) else None,
+                    adj_close=float(row['Close']) if not pd.isna(row['Close']) else None
+                )
+                db_session.add(data_entry)
 
         db_session.commit()
 
