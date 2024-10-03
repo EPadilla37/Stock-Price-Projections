@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 stockInfo.innerHTML += `<p class="text-danger">${data.error}</p>`;
             } else {
                 if (data.message === 'Data already exists') {
-                    updateChart(data.historical_data, data.forecast_data);
+                    updateChart(data.historical_data, data.historical_forecast, data.current_forecast);
                     stockInfo.innerHTML = `<p class="text-success">Displaying data for ${symbol}</p>`;
                 } else {
                     stockInfo.innerHTML += `<p class="text-success">${data.message}</p>`;
@@ -119,20 +119,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Update the chart with new data
-    function updateChart(historicalData, forecastData) {
+    function updateChart(historicalData, historicalForecast, currentForecast) {
         if (!chartContainer) {
             console.error('Chart container not found');
             return;
         }
-
+    
         if (chart) {
             chart.destroy();
         }
-
-        const labels = [...historicalData.map(d => d.date), ...forecastData.map(d => d.date)];
-        const historicalPrices = historicalData.map(d => d.price);
-        const forecastPrices = forecastData.map(d => d.forecast);
-
+    
+        const labels = [
+            ...historicalData.map(d => d.date),
+            ...historicalForecast.map(d => d.date),
+            ...currentForecast.map(d => d.date)
+        ];
+    
         chart = new Chart(chartContainer, {
             type: 'line',
             data: {
@@ -145,8 +147,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         fill: false
                     },
                     {
-                        label: 'Forecast',
-                        data: forecastData.map(d => ({ x: d.date, y: d.forecast })),
+                        label: 'Historical Forecast',
+                        data: historicalForecast.map(d => ({ x: d.date, y: d.forecast })),
+                        borderColor: 'green',
+                        borderDash: [5, 5],
+                        fill: false
+                    },
+                    // {
+                    //     label: 'Actual Price (for Historical Forecast)',
+                    //     data: historicalForecast.map(d => ({ x: d.date, y: d.actual })),
+                    //     borderColor: 'purple',
+                    //     pointStyle: 'circle',
+                    //     pointRadius: 4,
+                    //     fill: false
+                    // },
+                    {
+                        label: 'Current Forecast',
+                        data: currentForecast.map(d => ({ x: d.date, y: d.forecast })),
                         borderColor: 'red',
                         borderDash: [5, 5],
                         fill: false

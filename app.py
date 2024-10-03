@@ -62,19 +62,24 @@ def select_stock():
             # Fetch historical data
             historical_data = HistoricalData.query.filter_by(stock_id=stock.id).order_by(HistoricalData.date.desc()).limit(30).all()
             
-            # Fetch forecast data
-            latest_close_date = get_latest_market_close()
-            forecast_data = Forecast.query.filter(
-                Forecast.stock_id == stock.id,
-                Forecast.date >= latest_close_date
-            ).order_by(Forecast.date).all()
+            # Fetch all forecast data
+            all_forecast_data = Forecast.query.filter_by(stock_id=stock.id).order_by(Forecast.date.desc()).all()
             
-            if historical_data and forecast_data:
+            today = datetime.now().date()
+            
+            if historical_data and all_forecast_data:
                 return jsonify({
                     'message': 'Data already exists',
                     'stock_id': stock.id,
                     'historical_data': [{'date': hd.date.strftime('%Y-%m-%d'), 'price': hd.adj_close} for hd in reversed(historical_data)],
-                    'forecast_data': [{'date': fd.date.strftime('%Y-%m-%d'), 'forecast': fd.predicted_price, 'actual': fd.actual_price} for fd in forecast_data]
+                    'historical_forecast': [
+                        {'date': fd.date.strftime('%Y-%m-%d'), 'forecast': fd.predicted_price, 'actual': fd.actual_price, 'residual': fd.residual}
+                        for fd in all_forecast_data if fd.date < today
+                    ],
+                    'current_forecast': [
+                        {'date': fd.date.strftime('%Y-%m-%d'), 'forecast': fd.predicted_price}
+                        for fd in all_forecast_data if fd.date >= today
+                    ]
                 })
         
         # If stock doesn't exist or data is incomplete, proceed with current logic
@@ -82,7 +87,25 @@ def select_stock():
         forecast = generate_forecast(new_stock.id)
         store_forecast(new_stock.id, forecast)
         
-        return jsonify({'message': 'Stock added successfully', 'stock_id': new_stock.id})
+        # Fetch the newly added data
+        historical_data = HistoricalData.query.filter_by(stock_id=new_stock.id).order_by(HistoricalData.date.desc()).limit(30).all()
+        all_forecast_data = Forecast.query.filter_by(stock_id=new_stock.id).order_by(Forecast.date).all()
+        
+        today = datetime.now().date()
+        
+        return jsonify({
+            'message': 'Stock added successfully',
+            'stock_id': new_stock.id,
+            'historical_data': [{'date': hd.date.strftime('%Y-%m-%d'), 'price': hd.adj_close} for hd in reversed(historical_data)],
+            'historical_forecast': [
+                {'date': fd.date.strftime('%Y-%m-%d'), 'forecast': fd.predicted_price, 'actual': fd.actual_price, 'residual': fd.residual}
+                for fd in all_forecast_data if fd.date < today
+            ],
+            'current_forecast': [
+                {'date': fd.date.strftime('%Y-%m-%d'), 'forecast': fd.predicted_price}
+                for fd in all_forecast_data if fd.date >= today
+            ]
+        })
     except Exception as e:
         logger.exception(f"Error selecting stock: {str(e)}")
         return jsonify({'error': f'An error occurred while adding the stock: {str(e)}'}), 500
@@ -155,7 +178,7 @@ def start_scheduler():
 
 if __name__ == '__main__':
     with app.app_context():
-        # scheduled_update() //use only to manually check stock after 3:10PM PST
+        # scheduled_update() #//use only to manually check stock after 3:10PM PST
         if not scheduler.get_job('update_stocks'):
             scheduler.add_job(id='update_stocks', func=scheduled_update, trigger='cron', hour=18, minute=19, timezone='US/Eastern')
             print("Scheduler started")
