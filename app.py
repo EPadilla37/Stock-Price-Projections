@@ -153,16 +153,23 @@ def get_stock_data(stock_id):
 @app.route('/update', methods=['POST'])
 def update_stocks():
     try:
+        # Step 1: Fetch and store latest data for all stocks
         for stock in Stock.query.all():
-            # Fetch and store latest data, then generate new forecast
-            fetch_and_store_latest_data(stock.symbol, db.session)
-        
+            try:
+                fetch_and_store_latest_data(stock.symbol, db.session)
+                logger.info(f"Successfully fetched and stored latest data for {stock.symbol}")
+            except Exception as e:
+                logger.error(f"Error updating data for {stock.symbol}: {str(e)}")
+                continue
+
+        # Step 2: Perform daily model update (includes updating actual prices, residuals, and generating new forecasts)
         daily_model_update()
-        
+        logger.info("Successfully completed daily model update")
+
         return jsonify({'message': 'Stocks updated successfully'})
     except Exception as e:
-        logger.error(f"Error updating stocks: {str(e)}")
-        return jsonify({'error': 'An error occurred while updating stocks'}), 500
+        logger.error(f"Error in update_stocks: {str(e)}")
+        return jsonify({'error': f'An error occurred while updating stocks: {str(e)}'}), 500
     
 def scheduled_update():
     with app.app_context():
@@ -178,7 +185,7 @@ def start_scheduler():
 
 if __name__ == '__main__':
     with app.app_context():
-        # scheduled_update() #//use only to manually check stock after 3:10PM PST
+        scheduled_update() #//use only to manually check stock after 3:10PM PST
         if not scheduler.get_job('update_stocks'):
             scheduler.add_job(id='update_stocks', func=scheduled_update, trigger='cron', hour=18, minute=19, timezone='US/Eastern')
             print("Scheduler started")
